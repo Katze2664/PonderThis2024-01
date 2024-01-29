@@ -25,7 +25,7 @@ def operator_parser(operator_str):
             operator_lst.append(-1)
     return operator_lst
 
-def make_checker(operator_str, target, row=None, col=None):
+def make_calc_last_num(operator_str, target, row=None, col=None):
     # Rows and cols are indexed from 0
     assert (row is None) != (col is None), "Must specify exactly one row or col"
     operator_lst = operator_parser(operator_str)
@@ -34,15 +34,16 @@ def make_checker(operator_str, target, row=None, col=None):
     if col is not None:
         ops = np.array([1] + operator_lst[col + 3 :: 7])
     
-    def checker(board):
+    def calc_last_num(board):
         if row is not None:
             nums = np.array(board[4 * row: 4 * row + 4])
         if col is not None:
             nums = np.array(board[col :: 4])
-    
-        return sum(nums * ops) == target
+
+        last_num = (target - sum(nums[:3] * ops[:3])) / ops[3]
+        return last_num
         
-    return checker
+    return calc_last_num
 
 def board_printer(board):
     result = np.array(board).reshape(4, 4)
@@ -51,18 +52,27 @@ def board_printer(board):
 # %%
 operator_str = "[+,-,-,+,+,-,+,+,+,-,+,-,-,+,-,+,+,-,-,+,+,-,+,-]"
 
-checker_row0 = make_checker(operator_str, 5, row=0)
-checker_row1 = make_checker(operator_str, 10, row=1)
-checker_row2 = make_checker(operator_str, 9, row=2)
-checker_row3 = make_checker(operator_str, 0, row=3)
-checker_col0 = make_checker(operator_str, 17, col=0)
-checker_col1 = make_checker(operator_str, 8, col=1)
-checker_col2 = make_checker(operator_str, 11, col=2)
-checker_col3 = make_checker(operator_str, 48, col=3)
+calc_last_num_row0 = make_calc_last_num(operator_str, 5, row=0)
+calc_last_num_row1 = make_calc_last_num(operator_str, 10, row=1)
+calc_last_num_row2 = make_calc_last_num(operator_str, 9, row=2)
+calc_last_num_row3 = make_calc_last_num(operator_str, 0, row=3)
+calc_last_num_col0 = make_calc_last_num(operator_str, 17, col=0)
+calc_last_num_col1 = make_calc_last_num(operator_str, 8, col=1)
+calc_last_num_col2 = make_calc_last_num(operator_str, 11, col=2)
+calc_last_num_col3 = make_calc_last_num(operator_str, 48, col=3)
 
 # %%
 lst = list(range(1, 17))
-print(checker_col2(lst))
+print(calc_last_num_row0(lst))
+print(calc_last_num_row1(lst))
+print(calc_last_num_row2(lst))
+print(calc_last_num_row3(lst))
+
+print(calc_last_num_col0(lst))
+print(calc_last_num_col1(lst))
+print(calc_last_num_col2(lst))
+print(calc_last_num_col3(lst))
+
 board_printer(lst)
 
 # %%
