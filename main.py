@@ -76,3 +76,62 @@ print(calc_last_num_col3(lst))
 board_printer(lst)
 
 # %%
+def backtrack(board, unused):
+    print(board, unused)
+    if len(unused) == 0:
+        return board
+    
+    position = 16 - len(unused)
+    if position in [1, 2, 3, 5, 6, 7, 9, 10, 11]:
+        for num in unused:
+            board_copy = board.copy()
+            board_copy[position] = num
+            unused_copy = unused.copy()
+            unused_copy.remove(num)
+            solution = backtrack(board_copy, unused_copy)
+            if solution:
+                return solution
+    
+    elif position in [4, 8]:
+        if position == 4:
+            num = calc_last_num_row0(board)
+        else:
+            num = calc_last_num_row1(board)
+        board_copy = board.copy()
+        board_copy[position] = num
+        unused_copy = unused.copy()
+        unused_copy.remove(num)
+        solution = backtrack(board_copy, unused_copy)
+        if solution:
+            return solution
+
+    elif position == 12:
+        num12 = calc_last_num_row2(board)
+        num13 = calc_last_num_col0(board)
+        num14 = calc_last_num_col1(board)
+        num15 = calc_last_num_col2(board)
+
+
+        board_copy = board.copy()
+        board_copy[12] = num12
+        board_copy[13] = num13
+        board_copy[14] = num14
+        board_copy[15] = num15
+        unused_copy = unused.copy()
+        unused_copy.remove(num12)
+        unused_copy.remove(num13)
+        unused_copy.remove(num14)
+        unused_copy.remove(num15)
+        solution = backtrack(board_copy, unused_copy)
+        if solution:
+            return solution
+        
+
+
+        board_copy = board.copy()
+        board[position] = num
+        unused_copy = unused.copy()
+        unused_copy.remove(num)
+        solution = backtrack(board_copy, unused_copy)
+
+
