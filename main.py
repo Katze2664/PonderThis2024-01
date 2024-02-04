@@ -12,9 +12,23 @@
 
 # "[+,-,-,+,+,-,+,+,+,-,+,-,-,+,-,+,+,-,-,+,+,-,+,-]"
 
+# Solution
+# [2, 14, 4, 7, 12, 8, 5, 15, 9, 11, 1, 10, 6, 3, 13, 16]
+
+#  2 + 14 -  4 -  7 =  5
+#  +    +    -    +
+# 12 +  8 +  5 - 15 = 10
+#  +    -    -    +
+#  9 - 11 +  1 + 10 =  9
+#  -    -    +    +
+#  6 -  3 + 13 - 16 =  0
+#  =    =    =    =
+# 17    8   11   48
+
 # %%
 
 import numpy as np
+import time
 
 def operator_parser(operator_str):
     operator_lst = []
@@ -41,7 +55,7 @@ def make_calc_last_num(operator_str, target, row=None, col=None):
             nums = np.array(board[col :: 4])
 
         last_num = (target - sum(nums[:3] * ops[:3])) / ops[3]
-        return last_num
+        return int(last_num)
         
     return calc_last_num
 
@@ -62,76 +76,59 @@ calc_last_num_col2 = make_calc_last_num(operator_str, 11, col=2)
 calc_last_num_col3 = make_calc_last_num(operator_str, 48, col=3)
 
 # %%
-lst = list(range(1, 17))
-print(calc_last_num_row0(lst))
-print(calc_last_num_row1(lst))
-print(calc_last_num_row2(lst))
-print(calc_last_num_row3(lst))
+def backtrack(board, unused_set):
+    unused_list = list(unused_set)
+    
+    position = 16 - len(unused_list)
 
-print(calc_last_num_col0(lst))
-print(calc_last_num_col1(lst))
-print(calc_last_num_col2(lst))
-print(calc_last_num_col3(lst))
+    if position in [0, 4, 8]:
+        ijk = ((i, j, k) for i in range(len(unused_list))
+                         for j in range(len(unused_list)) if j != i
+                         for k in range(len(unused_list)) if k != i and k != j)
 
-board_printer(lst)
+        for i, j, k in ijk:
+            num0, num1, num2 = unused_list[i], unused_list[j], unused_list[k]
+            nums = [num0, num1, num2]
+            board[position : position + 3] = nums
+            if position == 0:
+                last_num = calc_last_num_row0(board)
+            elif position == 4:
+                last_num = calc_last_num_row1(board)
+            else:
+                assert position == 8
+                last_num = calc_last_num_row2(board)
+            
+            if last_num in unused_set and last_num not in nums:
+                board[position + 3] = last_num
+                unused_set_copy = unused_set.copy()
+                for num in [num0, num1, num2, last_num]:
+                    unused_set_copy.remove(num)
+                solution = backtrack(board, unused_set_copy)
+                if solution:
+                    return solution       
+
+    else:
+        assert position == 12
+        num12 = calc_last_num_col0(board)
+        num13 = calc_last_num_col1(board)
+        num14 = calc_last_num_col2(board)
+        num15 = calc_last_num_col3(board)
+
+        nums = [num12, num13, num14, num15]
+        if set(nums) == unused_set:
+            board[position : position + 4] = nums
+
+            if calc_last_num_row3(board) == num15:
+                # print("Solution found!", board)
+                return board
+    
+    return False
 
 # %%
-def backtrack(board, unused):
-    print(board, unused)
-    if len(unused) == 0:
-        return board
-    
-    position = 16 - len(unused)
-    if position in [1, 2, 3, 5, 6, 7, 9, 10, 11]:
-        for num in unused:
-            board_copy = board.copy()
-            board_copy[position] = num
-            unused_copy = unused.copy()
-            unused_copy.remove(num)
-            solution = backtrack(board_copy, unused_copy)
-            if solution:
-                return solution
-    
-    elif position in [4, 8]:
-        if position == 4:
-            num = calc_last_num_row0(board)
-        else:
-            num = calc_last_num_row1(board)
-        board_copy = board.copy()
-        board_copy[position] = num
-        unused_copy = unused.copy()
-        unused_copy.remove(num)
-        solution = backtrack(board_copy, unused_copy)
-        if solution:
-            return solution
-
-    elif position == 12:
-        num12 = calc_last_num_row2(board)
-        num13 = calc_last_num_col0(board)
-        num14 = calc_last_num_col1(board)
-        num15 = calc_last_num_col2(board)
-
-
-        board_copy = board.copy()
-        board_copy[12] = num12
-        board_copy[13] = num13
-        board_copy[14] = num14
-        board_copy[15] = num15
-        unused_copy = unused.copy()
-        unused_copy.remove(num12)
-        unused_copy.remove(num13)
-        unused_copy.remove(num14)
-        unused_copy.remove(num15)
-        solution = backtrack(board_copy, unused_copy)
-        if solution:
-            return solution
-        
-
-
-        board_copy = board.copy()
-        board[position] = num
-        unused_copy = unused.copy()
-        unused_copy.remove(num)
-        solution = backtrack(board_copy, unused_copy)
-
-
+start_time = time.time()
+board = [0] * 16
+unused_set = set(range(1, 17))
+solution = backtrack(board, unused_set)
+print(solution)
+print(time.time() - start_time)
+# %%
