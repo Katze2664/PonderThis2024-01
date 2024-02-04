@@ -76,7 +76,10 @@ calc_last_num_col2 = make_calc_last_num(operator_str, 11, col=2)
 calc_last_num_col3 = make_calc_last_num(operator_str, 48, col=3)
 
 # %%
-def backtrack(board, unused_set):
+def backtrack(board, unused_set, solutions=None, num_solutions=np.inf):
+    if solutions is None:
+        solutions = []
+    
     unused_list = list(unused_set)
     
     position = 16 - len(unused_list)
@@ -103,10 +106,9 @@ def backtrack(board, unused_set):
                 unused_set_copy = unused_set.copy()
                 for num in [num0, num1, num2, last_num]:
                     unused_set_copy.remove(num)
-                solution = backtrack(board, unused_set_copy)
-                if solution:
-                    return solution       
-
+                solutions = backtrack(board, unused_set_copy, solutions, num_solutions)     
+                if len(solutions) >= num_solutions:
+                    return solutions
     else:
         assert position == 12
         num12 = calc_last_num_col0(board)
@@ -119,16 +121,19 @@ def backtrack(board, unused_set):
             board[position : position + 4] = nums
 
             if calc_last_num_row3(board) == num15:
-                # print("Solution found!", board)
-                return board
+                solutions.append((board.copy(), time.time() - start_time))
+                print(f"Solution found! {round(time.time() - start_time, 1)}s", board)
     
-    return False
+    return solutions
 
 # %%
 start_time = time.time()
 board = [0] * 16
 unused_set = set(range(1, 17))
-solution = backtrack(board, unused_set)
-print(solution)
+solutions = backtrack(board, unused_set, num_solutions=np.inf)
+
+for solution, time_elapsed in solutions:
+    print(solution, time_elapsed)
+
 print(time.time() - start_time)
 # %%
